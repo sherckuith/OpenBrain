@@ -6,8 +6,25 @@ import {
   FileText, CheckSquare, MessageSquare, Plus, Calendar
 } from 'lucide-react';
 import Link from 'next/link';
+import useSWR from 'swr';
+import { format } from 'date-fns';
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function Home() {
+  const { data: tasks } = useSWR('/api/tasks', fetcher);
+  const { data: chats } = useSWR('/api/chats', fetcher);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'done': return 'bg-green-500';
+      case 'in-progress': return 'bg-yellow-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const pendingTasks = tasks?.filter((t: any) => t.status !== 'done') || [];
+
   return (
     <div className="flex min-h-screen bg-gray-900 text-gray-100 font-sans">
       <Sidebar />
@@ -43,20 +60,20 @@ export default function Home() {
                 <CheckSquare className="text-green-400" size={20} />
                 Tareas Pendientes
               </h2>
-              <span className="text-xs bg-gray-700 px-2 py-1 rounded text-gray-300">3 Open</span>
+              <span className="text-xs bg-gray-700 px-2 py-1 rounded text-gray-300">
+                {pendingTasks.length} Open
+              </span>
             </div>
-            <ul className="space-y-3">
-              {[
-                { title: 'Revisar diseño OpenBrain', status: 'In Progress', color: 'bg-yellow-500' },
-                { title: 'Sincronizar OpenClaw logs', status: 'Todo', color: 'bg-gray-500' },
-                { title: 'Configurar Prisma Schema', status: 'Done', color: 'bg-green-500' },
-              ].map((task, i) => (
-                <li key={i} className="flex items-center gap-3 group cursor-pointer p-2 hover:bg-gray-700/50 rounded-lg transition-colors">
-                  <div className={`w-2 h-2 rounded-full ${task.color}`} />
-                  <span className="text-sm text-gray-300 group-hover:text-white transition-colors">{task.title}</span>
-                </li>
-              ))}
-            </ul>
+            {(!tasks) ? <div className="text-sm text-gray-500">Cargando tareas...</div> : (
+              <ul className="space-y-3">
+                {tasks.slice(0, 5).map((task: any, i: number) => (
+                  <li key={task.id} className="flex items-center gap-3 group cursor-pointer p-2 hover:bg-gray-700/50 rounded-lg transition-colors">
+                    <div className={`w-2 h-2 rounded-full ${getStatusColor(task.status)}`} />
+                    <span className="text-sm text-gray-300 group-hover:text-white transition-colors">{task.title}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </motion.div>
 
           <motion.div
@@ -73,24 +90,23 @@ export default function Home() {
               <Link href="/chats" className="text-xs text-blue-400 hover:underline">Ver todos</Link>
             </div>
             <div className="space-y-4">
-              {[
-                { user: 'Sophi', msg: 'Revisa el contrato...', time: '10:30 AM' },
-                { user: 'Nicolas', msg: 'Papá, ¿me ayudas con la tarea?', time: '09:15 AM' },
-                { user: 'Angel (Public)', msg: 'Propuesta enviada...', time: 'Yesterday' },
-              ].map((chat, i) => (
-                <div key={i} className="flex items-start gap-3 p-2 hover:bg-gray-700/30 rounded-lg cursor-pointer transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold">
-                    {chat.user[0]}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-baseline">
-                      <h3 className="text-sm font-medium text-gray-200 truncate">{chat.user}</h3>
-                      <span className="text-xs text-gray-500">{chat.time}</span>
+              {(!chats) ? <div className="text-sm text-gray-500">Cargando chats...</div> :
+                chats.slice(0, 5).map((chat: any, i: number) => (
+                  <div key={chat.id} className="flex items-start gap-3 p-2 hover:bg-gray-700/30 rounded-lg cursor-pointer transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold shrink-0">
+                      {chat.sender && chat.sender[0]}
                     </div>
-                    <p className="text-xs text-gray-400 truncate">{chat.msg}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-baseline">
+                        <h3 className="text-sm font-medium text-gray-200 truncate">{chat.sender}</h3>
+                        <span className="text-xs text-gray-500">
+                          {chat.timestamp ? format(new Date(chat.timestamp), 'HH:mm') : ''}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 truncate">{chat.message}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </motion.div>
 

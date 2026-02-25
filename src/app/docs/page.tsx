@@ -19,7 +19,7 @@ async function getDocs(): Promise<DocMeta[]> {
   if (!fs.existsSync(PROJECTS_DIR)) {
     fs.mkdirSync(PROJECTS_DIR, { recursive: true });
     // Sample
-    fs.writeFileSync(path.join(PROJECTS_DIR, 'welcome.md'), 
+    fs.writeFileSync(path.join(PROJECTS_DIR, 'welcome.md'),
       `---\ntitle: OpenBrain Concept\ntags: ['system', 'architecture']\ndate: '2026-02-23'\n---\n# Segundo Cerebro\nEste es tu espacio.`
     );
   }
@@ -52,7 +52,7 @@ export default async function DocsPage() {
         <h1 className="text-3xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
           Tus Documentos
         </h1>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {docs.map((doc) => (
             <div key={doc.slug} className="bg-gray-800 border border-gray-700 rounded-xl p-6 hover:border-gray-500 transition-colors group cursor-pointer">
@@ -68,7 +68,7 @@ export default async function DocsPage() {
               </div>
             </div>
           ))}
-          
+
           {/* New Doc Card */}
           <div className="border-2 border-dashed border-gray-700 rounded-xl p-6 flex flex-col items-center justify-center text-gray-500 hover:text-gray-300 hover:border-gray-500 transition-colors cursor-pointer min-h-[200px]">
             <span className="text-4xl mb-2">+</span>

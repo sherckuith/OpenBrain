@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String?
+  role      String   @default("user") // admin, user
+  tasks     Task[]
+  chats     Chat[]
+  agendas   DailyAgenda[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String
+  directory   String   @unique
+  tasks       Task[]
+  docs        Doc[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  status      String   @default("todo") // todo, in-progress, done
+  dueDate     DateTime?
+  userId      Int?
+  projectId   Int?
+  user        User?    @relation(fields: [userId], references: [id])
+  project     Project? @relation(fields: [projectId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Doc {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String?
+  path        String   @unique
+  projectId   Int?
+  project     Project? @relation(fields: [projectId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Chat {
+  id          Int      @id @default(autoincrement())
+  message     String
+  sender      String   // User phone number or "OpenBrain"
+  receiver    String?  // User phone number or "Group"
+  timestamp   DateTime @default(now())
+  fileUrl     String?
+  userId      Int?
+  user        User?    @relation(fields: [userId], references: [id])
+}
+
+model TokenUsage {
+  id          Int      @id @default(autoincrement())
+  model       String
+  tokensIn    Int
+  tokensOut   Int
+  cost        Float
+  timestamp   DateTime @default(now())
+}
+
+model DailyAgenda {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  task        String
+  time        String   // "09:00", "14:30"
+  user        User     @relation(fields: [userId], references: [id])
+  completed   Boolean  @default(false)
+  date        DateTime @default(now())
+}
